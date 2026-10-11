@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fdfbf7">
+  <meta name="description" content="Create, print, and share receipts offline.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <title>Receipt Studio</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#receipt-maker" aria-label="Receipt Studio home"><span class="brand-mark">R</span><span>Receipt Studio<small>Simple receipts, anywhere</small></span></a>
+  </header>
+
+  <main class="app-shell">
+    <section id="receipt-maker" class="intro">
+      <div><p class="eyebrow">YOUR BUSINESS, YOUR RECEIPT</p><h1>Make it official.</h1><p class="intro-copy">Pick a starting point, make it yours, and keep your receipts close.</p></div>
+      <div class="offline-badge"><span></span> Works offline</div>
+    </section>
+
+    <section class="preset-panel panel" aria-labelledby="presetHeading">
+      <div class="section-heading"><div><p class="eyebrow">START WITH A TEMPLATE</p><h2 id="presetHeading">Choose a preset</h2></div><button id="savePresetButton" type="button" class="button button-quiet">＋ Save as Preset</button></div>
+      <div id="presetChips" class="preset-chips" role="group" aria-label="Receipt presets"></div>
+      <div class="custom-fields-wrap" id="customFieldsWrap" hidden><p class="field-title">Fields to include</p><div id="customFieldChoices" class="custom-field-choices"></div><button id="addCustomFieldButton" class="text-button" type="button">＋ Add a field</button></div>
+      <div id="savedPresetsWrap" class="saved-presets" hidden><span>Your saved presets</span><div id="savedPresets"></div></div>
+    </section>
+
+    <nav class="tabs" aria-label="App sections">
+      <button class="tab active" type="button" data-tab="create" aria-selected="true">Create receipt</button>
+      <button class="tab" type="button" data-tab="history" aria-selected="false">History <span id="historyCount" class="count-badge">0</span></button>
+    </nav>
+
+    <section id="createTab" class="tab-content">
+      <div class="workspace">
+        <form id="receiptForm" class="editor panel" autocomplete="on">
+          <div class="section-heading compact"><div><p class="eyebrow">RECEIPT DETAILS</p><h2>Business & customer</h2></div></div>
+          <div class="form-grid">
+            <label>Business name<input name="businessName" type="text" placeholder="Your business name" required></label>
+            <label>Phone<input name="phone" type="tel" placeholder="+91 98765 43210"></label>
+            <label class="span-2">Address<textarea name="address" rows="2" placeholder="Street, city, PIN code"></textarea></label>
+            <div class="logo-field span-2">
+              <span class="logo-label">Business logo</span>
+              <div class="logo-controls">
+                <input id="logoUpload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+                <button id="addLogoButton" class="button button-small button-outline" type="button">＋ Add logo</button>
+                <button id="removeLogoButton" class="button button-small button-quiet" type="button" hidden>Remove logo</button>
+                <span id="logoStatus" class="logo-status">No logo added</span>
+              </div>
+            </div>
+            <label>Receipt number<input id="receiptNumber" name="receiptNumber" type="text"></label>
+            <label>Date & time<input id="receiptDate" name="receiptDate" type="datetime-local"></label>
+            <label>Customer name<input id="customerName" name="customerName" type="text" placeholder="Walk-in customer"></label>
+            <label>Payment method<select id="paymentMethod" name="paymentMethod"><option>Cash</option><option>UPI</option><option>Card</option><option>Other</option></select></label>
+            <label>Currency<select id="currency" name="currency"><option value="₹">₹ INR</option><option value="$">$ USD</option><option value="€">€ EUR</option><option value="£">£ GBP</option><option value="¥">¥ JPY / CNY</option><option value="AED">AED</option></select></label>
+          </div>
+
+          <div id="extraFields" class="extra-fields"></div>
+
+          <div class="items-heading"><div><p class="eyebrow">LINE ITEMS</p><h3>Your items</h3></div><button id="addItemButton" class="button button-small button-outline" type="button">＋ Add item</button></div>
+          <div class="table-scroll">
+            <table class="items-table">
+              <thead><tr><th id="itemNameHeading">Item</th><th id="quantityHeading">Qty</th><th id="priceHeading">Price</th><th class="amount-heading">Amount</th><th aria-label="Actions"></th></tr></thead>
+              <tbody id="itemsBody"></tbody>
+            </table>
+          </div>
+
+          <div class="totals-editor">
+            <label>Discount type<select id="discountType"><option value="percent">Percent (%)</option><option value="flat">Flat amount</option></select></label>
+            <label>Discount<input id="discountValue" type="number" min="0" step="0.01" value="0"></label>
+            <label>Tax / GST (%)<input id="taxRate" type="number" min="0" step="0.01" value="0"></label>
+          </div>
+
+          <div class="editor-actions">
+            <button id="newReceiptButton" type="button" class="button button-quiet">New receipt</button>
+            <span class="autosave-note">Changes save automatically</span>
+          </div>
+        </form>
+
+        <aside class="preview-column">
+          <div class="preview-toolbar"><div><p class="eyebrow">LIVE PREVIEW</p><h2>Your receipt</h2></div><button id="shareButton" type="button" class="icon-button" aria-label="Share receipt" title="Share receipt">↗</button></div>
+          <article id="receiptPreview" class="receipt-preview" aria-live="polite"></article>
+          <div class="preview-actions">
+            <button id="printButton" type="button" class="button button-primary">Print</button>
+            <button id="pdfButton" type="button" class="button button-outline">Download PDF</button>
+          </div>
+          <p class="pdf-note">Thermal printer? Select your printer and 80 mm paper in the print dialog.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="historyTab" class="tab-content" hidden>
+      <div class="history-panel panel">
+        <div class="section-heading"><div><p class="eyebrow">YOUR SAVED RECEIPTS</p><h2>Receipt history</h2></div>
+          <label class="filter-label">Filter by preset<select id="historyFilter"><option value="all">All presets</option></select></label>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </div>
+    </section>
+    <p id="statusMessage" class="status-message" role="status" aria-live="polite"></p>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <a class="brand" href="#receipt-maker" aria-label="Receipt Studio home"><span class="brand-mark">R</span><span>Receipt Studio<small>Empowering teams to work smarter.</small></span></a>
+        <p>Your data stays on this device. Install Receipt Studio to use it offline.</p>
+      </div>
+      <div class="footer-links">
+        <section aria-labelledby="footer-product"><h2 id="footer-product">Product</h2><ul>
+          <li><a href="page.html?topic=features">Features</a></li><li><a href="page.html?topic=pricing">Pricing</a></li><li><a href="page.html?topic=security">Security</a></li><li><a href="page.html?topic=integrations">Integrations</a></li><li><a href="page.html?topic=changelog">Changelog</a></li>
+        </ul></section>
+        <section aria-labelledby="footer-company"><h2 id="footer-company">Company</h2><ul>
+          <li><a href="page.html?topic=about">About</a></li><li><a href="page.html?topic=blog">Blog</a></li><li><a href="page.html?topic=careers">Careers</a></li><li><a href="page.html?topic=contact">Contact</a></li>
+        </ul></section>
+        <section aria-labelledby="footer-resources"><h2 id="footer-resources">Resources</h2><ul>
+          <li><a href="page.html?topic=documentation">Documentation</a></li><li><a href="page.html?topic=help-center">Help Center</a></li><li><a href="page.html?topic=api-reference">API Reference</a></li><li><a href="page.html?topic=community">Community</a></li>
+        </ul></section>
+        <section aria-labelledby="footer-legal"><h2 id="footer-legal">Legal</h2><ul>
+          <li><a href="page.html?topic=privacy-policy">Privacy Policy</a></li><li><a href="page.html?topic=terms-of-service">Terms of Service</a></li><li><a href="page.html?topic=cookie-policy">Cookie Policy</a></li><li><a href="page.html?topic=gdpr">GDPR</a></li>
+        </ul></section>
+      </div>
+      <p class="footer-credit">Made with love by <strong>Rashal &amp; Team</strong><span class="footer-heart" aria-label="love">❤️</span></p>
+      <div class="footer-bottom">
+        <span>© 2026 Recipt Studio. All rights reserved.</span>
+        <div class="footer-bottom-actions">
+          <div class="install-area">
+            <button id="installButton" class="button button-install" type="button" hidden>Install App</button>
+            <p id="iosHint" class="ios-hint" hidden>Tap Share → Add to Home Screen</p>
+          </div>
+          <a class="developer-link" href="https://rashal-dev.pages.dev/" target="_blank" rel="noopener noreferrer">Contact Developer <span aria-hidden="true">↗</span></a>
+          <a href="index.html#receipt-maker">Back to receipt maker ↑</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
